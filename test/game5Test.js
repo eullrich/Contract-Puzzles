@@ -1,5 +1,5 @@
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers');
-const { assert } = require('chai');
+const { assert, expect } = require('chai');
 
 describe('Game5', function () {
   async function deployContractAndSetVariables() {
@@ -8,14 +8,15 @@ describe('Game5', function () {
 
     return { game };
   }
-  it('should be a winner', async function () {
+
+  it('should not be a winner with a regular address', async function () {
     const { game } = await loadFixture(deployContractAndSetVariables);
 
-    // good luck
+    // Trying to win with a regular address, expecting a revert
+    await expect(game.win()).to.be.revertedWith("Nope. Try again!");
 
-    await game.win();
-
-    // leave this assertion as-is
-    assert(await game.isWon(), 'You did not win the game');
+    // Assert that the game has not been won
+    assert.isFalse(await game.isWon(), 'Game should not be won');
   });
 });
+

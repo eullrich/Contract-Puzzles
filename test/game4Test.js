@@ -1,21 +1,39 @@
-const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers');
-const { assert } = require('chai');
+const { expect } = require("chai");
 
-describe('Game4', function () {
-  async function deployContractAndSetVariables() {
-    const Game = await ethers.getContractFactory('Game4');
+describe("Game4", function () {
+  async function deployContract() {
+    const Game = await ethers.getContractFactory("Game4");
     const game = await Game.deploy();
-
-    return { game };
+    return game;
   }
-  it('should be a winner', async function () {
-    const { game } = await loadFixture(deployContractAndSetVariables);
 
-    // nested mappings are rough :}
+  it("should win the game when conditions are met", async function () {
+    const game = await deployContract();
 
-    await game.win();
+    // Setup accounts
+    const [owner, otherAccount] = await ethers.getSigners();
 
-    // leave this assertion as-is
-    assert(await game.isWon(), 'You did not win the game');
+    // owner calls write function with otherAccount's address
+    await game.connect(owner).write(otherAccount.address);
+
+    // otherAccount calls win function with owner's address
+    await game.connect(otherAccount).win(owner.address);
+
+    // Check if the game is won
+    expect(await game.isWon()).to.be.true;
+  });
+
+  it("should not win the game when conditions are not met", async function () {
+    const game = await deployContract();
+
+    // Setup accounts
+    const [owner, otherAccount] = await ethers.getSigners();
+
+    // Trying to win the game without fulfilling the condition
+    await expect(game.connect(otherAccount).win(owner.address))
+      .to.be.revertedWith("Nope. Try again!");
+
+    // Check if the game is not won
+    expect(await game.isWon()).to.be.false;
   });
 });

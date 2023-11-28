@@ -11,6 +11,13 @@ describe('Game2', function () {
 
   it('should be a winner', async function () {
     const { game } = await loadFixture(deployContractAndSetVariables);
+    
+    const switches = [20, 47, 212];
+ 
+    // Turn on each switch individually
+    for (let key of switches) {
+      await game.switchOn(key);
+    }
 
     // press all the right switches to win this stage
 
